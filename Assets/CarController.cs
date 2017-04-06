@@ -1,72 +1,111 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class CarController : MonoBehaviour {
-
-    public Transform[] wheels;
- 
+public class CarController : MonoBehaviour
+{
+    public List<GameObject> wheels;
     float enginePower = 150.0f;
     float power = 0.0f;
     float brake = 0.0f;
-    float steer = 0.0f;
+    float steerAngle = 0.0f;
     float maxSteer = 25.0f;
+    float friction = 0.2f;
 
-    // Use this for initialization
-    void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    // initialization
+    void Start()
+    {
+        /*wheels = GetComponentsInChildren<Transform>().ToList()
+            .Select(t => t.gameObject)
+            .Where(IsWheel).ToList();*/
+        Debug.Log("start");
+    }
+
+    public List<T> FindComponentsInChildWithTag<T>(string tag) where T : Component
+    {
+        List<T> children = new List<T>();
+        foreach (Transform tr in transform)
+        {
+            if (tr.tag == tag)
+            {
+                children.Add(tr.GetComponent<T>());
+            }
+        }
+        return children;
+    }
+
+    private bool IsWheel(GameObject gameObject)
+    {
+        Debug.Log("Tag:" + gameObject.tag);
+        return gameObject.tag == "wheel";
+    }
+
+    // update per frame
+    void Update()
+    {
         power = Input.GetAxis("Vertical") * enginePower * Time.deltaTime * 250.0f;
-        steer = Input.GetAxis("Horizontal") * maxSteer;
+        steerAngle = Input.GetAxis("Horizontal") * maxSteer;
         brake = Input.GetKey("space") ? GetComponent<Rigidbody>().mass * 0.1f : 0.0f;
         Debug.Log(power);
-        GetCollider(0).steerAngle = steer;
-        GetCollider(1).steerAngle = steer;
 
-        foreach(var wheel in wheels) {
-            UpdateWheel(wheel);
-        }
+        getFrontWheels().ForEach(w => TurnWheel(w, steerAngle));
 
+        wheels.ForEach(RotateWheel);
 
         if (brake > 0.0)
         {
-            GetCollider(0).brakeTorque = brake;
-            GetCollider(1).brakeTorque = brake;
-            GetCollider(2).brakeTorque = brake;
-            GetCollider(3).brakeTorque = brake;
-            GetCollider(2).motorTorque = 0.0f;
-            GetCollider(3).motorTorque = 0.0f;
+            wheels.ForEach(BrakeWheel);
         }
-        else
+        else if (power == 0)
         {
-            GetCollider(0).brakeTorque = 0;
-            GetCollider(1).brakeTorque = 0;
-            GetCollider(2).brakeTorque = 0;
-            GetCollider(3).brakeTorque = 0;
-            GetCollider(2).motorTorque = -power;
-            GetCollider(3).motorTorque = -power;
+            wheels.ForEach(ApplyFriction);
         }
+
+        getFrontWheels().ForEach(SetPower);
     }
 
-    void UpdateWheel(Transform wheel)
+    List<GameObject> getFrontWheels()
     {
-        if (Input.GetKey(KeyCode.A))
-        {
-
-            wheel.Rotate(-Vector3.up * Time.deltaTime * power);
-        }
-
-        else if (Input.GetKey(KeyCode.D))
-        {
-
-            wheel.Rotate(Vector3.up * Time.deltaTime * power);
-        }
+        return new List<GameObject> { wheels[0], wheels[1] };
     }
 
-    WheelCollider GetCollider(int n) {
-        return wheels[n].gameObject.GetComponent<WheelCollider>();
+    void SetPower(GameObject wheel)
+    {
+        WheelCollider wheelCollider = GetCollider(wheel);
+        wheelCollider.motorTorque = power;
+        if (power > 0) wheelCollider.brakeTorque = 0;
+    }
+
+    void ApplyFriction(GameObject wheel)
+    {
+        WheelCollider wheelCollider = GetCollider(wheel);
+        wheelCollider.brakeTorque = friction;
+    }
+
+    void BrakeWheel(GameObject wheel)
+    {
+        WheelCollider wheelCollider = GetCollider(wheel);
+        wheelCollider.brakeTorque = brake;
+        wheelCollider.motorTorque = 0;
+
+    }
+
+    void TurnWheel(GameObject wheel, float steerAngle=0)
+    {
+        WheelCollider wheelCollider = GetCollider(wheel);
+        wheelCollider.steerAngle = steerAngle;
+        Vector3 wheelAngles = wheel.transform.localEulerAngles;
+        wheel.transform.localEulerAngles = new Vector3(wheelAngles.x, steerAngle - wheelAngles.z, wheelAngles.z);
+    }
+
+    void RotateWheel(GameObject wheel)
+    {
+        WheelCollider wheelCollider = GetCollider(wheel);
+        wheel.transform.Rotate(0, wheelCollider.rpm / 60 * 360 * Time.deltaTime, 0);
+    }
+
+    WheelCollider GetCollider(GameObject wheel)
+    {
+        return gameObject.GetComponentInChildren<WheelCollider>();
     }
 }
