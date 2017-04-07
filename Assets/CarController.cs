@@ -12,25 +12,46 @@ public class CarController: MonoBehaviour
         float motor = maxMotorTorque * Input.GetAxis("Vertical");
         float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
 
-        foreach (AxleInfo axleInfo in axleInfos)
-        {
-            if (axleInfo.steering)
-            {
+        WheelHit wheelHit;
+        float leftWheelTravel = 1.0f;
+        float rightWheelTravel = 1.0f;
+
+        foreach (AxleInfo axleInfo in axleInfos) {
+            if (axleInfo.steering) {
                 axleInfo.leftWheel.steerAngle = steering;
                 axleInfo.rightWheel.steerAngle = steering;
             }
-            if (axleInfo.motor)
-            {
+
+            if (axleInfo.motor) {
                 axleInfo.leftWheel.motorTorque = motor;
                 axleInfo.rightWheel.motorTorque = motor;
             }
+
             ApplyLocalPositionToVisuals(axleInfo.leftWheel);
             ApplyLocalPositionToVisuals(axleInfo.rightWheel);
+
+            // suspension bar
+            bool groundedLeft = axleInfo.leftWheel.GetGroundHit(out wheelHit);
+            if (groundedLeft) {
+                leftWheelTravel = (-axleInfo.leftWheel.transform.InverseTransformPoint(wheelHit.point).y - axleInfo.leftWheel.radius) / axleInfo.leftWheel.suspensionDistance;
+            } else {
+                leftWheelTravel = 1.0f;
+            }
+
+            bool groundedRight = axleInfo.rightWheel.GetGroundHit(out wheelHit);
+            if (groundedRight) {
+                rightWheelTravel = (-axleInfo.rightWheel.transform.InverseTransformPoint(wheelHit.point).y - axleInfo.rightWheel.radius) / axleInfo.rightWheel.suspensionDistance;
+            } else {
+                rightWheelTravel = 1.0f;
+            }
+
+            float antiRollForce = (leftWheelTravel - rightWheelTravel) * axleInfo.leftWheel.suspensionSpring.spring;
+            if (groundedLeft) GetComponent<Rigidbody>().AddForceAtPosition(axleInfo.leftWheel.transform.up * -antiRollForce, axleInfo.leftWheel.transform.position);
+            if (groundedRight) GetComponent<Rigidbody>().AddForceAtPosition(axleInfo.rightWheel.transform.up * antiRollForce, axleInfo.rightWheel.transform.position);
         }
     }
 
-    // finds the corresponding visual wheel
-    // correctly applies the transform
+    // finds the corresponding visual wheel and correctly applies the transform
     public void ApplyLocalPositionToVisuals(WheelCollider collider)
     {
         if (collider.transform.childCount == 0) return;
