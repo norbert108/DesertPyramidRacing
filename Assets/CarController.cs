@@ -6,17 +6,30 @@ public class CarController: MonoBehaviour
     public List<AxleInfo> axleInfos; // the information about each individual axle
     public float maxMotorTorque; // maximum torque the motor can apply to wheel
     public float maxSteeringAngle; // maximum steer angle the wheel can have
+    public float handbrakeStifness;
+
+    public void Start()
+    {
+        GetComponent<Rigidbody>().centerOfMass += new Vector3(0.0f, 0.0f, 1.0f);
+        
+    }
 
     public void FixedUpdate()
     {
+        GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, -1.0f, 0.0f));
+
         float motor = maxMotorTorque * Input.GetAxis("Vertical");
         float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
+        bool handbrake = Input.GetKeyDown(KeyCode.Space); // TODO kiedyś może??
 
         WheelHit wheelHit;
         float leftWheelTravel = 1.0f;
         float rightWheelTravel = 1.0f;
 
         foreach (AxleInfo axleInfo in axleInfos) {
+            float sidewaysFrictionStifnessNoBrake = axleInfo.leftWheel.sidewaysFriction.stiffness;
+
+
             if (axleInfo.steering) {
                 axleInfo.leftWheel.steerAngle = steering;
                 axleInfo.rightWheel.steerAngle = steering;
@@ -48,6 +61,13 @@ public class CarController: MonoBehaviour
             float antiRollForce = (leftWheelTravel - rightWheelTravel) * axleInfo.leftWheel.suspensionSpring.spring;
             if (groundedLeft) GetComponent<Rigidbody>().AddForceAtPosition(axleInfo.leftWheel.transform.up * -antiRollForce, axleInfo.leftWheel.transform.position);
             if (groundedRight) GetComponent<Rigidbody>().AddForceAtPosition(axleInfo.rightWheel.transform.up * antiRollForce, axleInfo.rightWheel.transform.position);
+
+            //if (handbrake)
+            //{
+            //    wheelfrictioncurve sidewaysfriction = axleinfo.leftwheel.sidewaysfriction;
+            //    sidewaysfriction.stiffness = sidewaysfrictionstifnessnobrake;
+            //    axleinfo.leftwheel.sidewaysfriction = sidewaysfriction;
+            //}
         }
     }
 
