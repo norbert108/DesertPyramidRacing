@@ -5,19 +5,17 @@ using UnityEngine;
 public class CarController : MonoBehaviour
 {
     public List<GameObject> wheels;
+    public GameObject drivingWheel;
     float enginePower = 150.0f;
     float power = 0.0f;
     float brake = 0.0f;
     float steerAngle = 0.0f;
     float maxSteer = 25.0f;
-    float friction = 0.2f;
+    float friction = 25f;
 
     // initialization
     void Start()
     {
-        /*wheels = GetComponentsInChildren<Transform>().ToList()
-            .Select(t => t.gameObject)
-            .Where(IsWheel).ToList();*/
         Debug.Log("start");
     }
 
@@ -49,6 +47,7 @@ public class CarController : MonoBehaviour
         Debug.Log(power);
 
         getFrontWheels().ForEach(w => TurnWheel(w, steerAngle));
+        TurnDrivingWheel(steerAngle);
 
         wheels.ForEach(RotateWheel);
 
@@ -61,7 +60,7 @@ public class CarController : MonoBehaviour
             wheels.ForEach(ApplyFriction);
         }
 
-        getFrontWheels().ForEach(SetPower);
+        wheels.ForEach(SetPower);
     }
 
     List<GameObject> getFrontWheels()
@@ -72,8 +71,10 @@ public class CarController : MonoBehaviour
     void SetPower(GameObject wheel)
     {
         WheelCollider wheelCollider = GetCollider(wheel);
-        wheelCollider.motorTorque = power;
-        if (power > 0) wheelCollider.brakeTorque = 0;
+        wheelCollider.motorTorque = -power;
+        Debug.Log(power);
+        if (power != 0) wheelCollider.brakeTorque = 0;
+        else Debug.Log("friction");
     }
 
     void ApplyFriction(GameObject wheel)
@@ -90,6 +91,12 @@ public class CarController : MonoBehaviour
 
     }
 
+    void TurnDrivingWheel(float steerAngle = 0)
+    {
+        Vector3 wheelAngles = drivingWheel.transform.localEulerAngles;
+        drivingWheel.transform.localEulerAngles = new Vector3(-(2*steerAngle - wheelAngles.z), wheelAngles.y, wheelAngles.z);
+    }
+
     void TurnWheel(GameObject wheel, float steerAngle=0)
     {
         WheelCollider wheelCollider = GetCollider(wheel);
@@ -101,11 +108,11 @@ public class CarController : MonoBehaviour
     void RotateWheel(GameObject wheel)
     {
         WheelCollider wheelCollider = GetCollider(wheel);
-        wheel.transform.Rotate(0, wheelCollider.rpm / 60 * 360 * Time.deltaTime, 0);
+        wheel.transform.Rotate(0, -wheelCollider.rpm / 60 * 360 * Time.deltaTime, 0);
     }
 
     WheelCollider GetCollider(GameObject wheel)
     {
-        return gameObject.GetComponentInChildren<WheelCollider>();
+        return wheel.GetComponent<WheelCollider>();
     }
 }
