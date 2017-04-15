@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     private static int checkpointsScored = -1;
     private static int checkpointsCount = 0;
     private static float raceStartTime;
+    private static int secodsToStartRace = 3;
 
     void Awake()
     {
@@ -18,8 +19,10 @@ public class GameManager : MonoBehaviour
             instance = this;
             // UWAGA!!! To zadziała tylko w przypadku jednego levelu, tą inicjalizację trzeba wrzucić gdzieś indziej, póki co będzie tu.
             GameManager.checkpointsCount = GameObject.Find("checkpoints").GetComponentsInChildren(typeof(BoxCollider)).Length;
+            GameObject.FindGameObjectWithTag("Player").GetComponent<CarController>().enabled = false;
+            
             Debug.Log(GameManager.checkpointsCount);
-            checkCheckpoint();
+            initializeRace();
         }
         else if (instance != this)
             Destroy(gameObject);
@@ -36,12 +39,30 @@ public class GameManager : MonoBehaviour
         }
         checkpointsScored++;
         GameObject.Find("score_counter").GetComponent<Text>().text = string.Format("Checkpoints: {0}/{1}", GameManager.checkpointsScored, GameManager.checkpointsCount);
-        if (checkpointsScored == checkpointsCount) win();
+        if (checkpointsScored == checkpointsCount) raceFinished();
     }
 
-    private static void win()
+    private static void raceFinished()
     {
         Debug.Log("ZWYCIENSTWO");
+    }
+
+    private static void initializeRace()
+    {
+        checkCheckpoint();
+        instance.InvokeRepeating("raceCountdown", 1f, 1f);
+    }
+
+    private void raceCountdown()
+    {
+        GameObject.Find("start_counter").GetComponent<Text>().text = string.Format("{0}", secodsToStartRace);
+        if (secodsToStartRace == 0)
+        {
+            GameObject.FindGameObjectWithTag("Player").GetComponent<CarController>().enabled = true;
+            instance.CancelInvoke("raceCountdown");
+            GameObject.Find("start_counter").GetComponent<Text>().enabled = false;
+        }
+        secodsToStartRace--;
     }
 
     private void Update()
