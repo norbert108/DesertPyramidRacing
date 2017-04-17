@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ public class CarController : MonoBehaviour
     float power = 0.0f;
     float brake = 0.0f;
     float steerAngle = 0.0f;
-    float maxSteer = 25.0f;
+    float maxSteer = 35.0f;
     float friction = 25f;
 
     // initialization
@@ -41,26 +42,28 @@ public class CarController : MonoBehaviour
     // update per frame
     void Update()
     {
-        power = Input.GetAxis("Vertical") * enginePower * Time.deltaTime * 250.0f;
-        steerAngle = Input.GetAxis("Horizontal") * maxSteer;
-        brake = Input.GetKey("space") ? GetComponent<Rigidbody>().mass * 0.1f : 0.0f;
+        float steerFactor = Input.GetAxis("Horizontal");
+        steerAngle = steerFactor * maxSteer;
+        power = Input.GetAxis("Vertical") * enginePower * (1 + Math.Abs(steerFactor)) * Time.deltaTime * 250.0f;
+        brake = Input.GetKey("space") ? GetComponent<Rigidbody>().mass * 150.5f : 0.0f;
         Debug.Log(power);
 
         getFrontWheels().ForEach(w => TurnWheel(w, steerAngle));
         TurnDrivingWheel(steerAngle);
 
         wheels.ForEach(RotateWheel);
-
+        Debug.Log("update brake: " + brake);
         if (brake > 0.0)
         {
-            wheels.ForEach(BrakeWheel);
+            getRearWheels().ForEach(BrakeWheel);
         }
         else if (power == 0)
         {
             wheels.ForEach(ApplyFriction);
         }
 
-        wheels.ForEach(SetPower);
+        getFrontWheels().ForEach(w => SetPower(w, power));
+        getRearWheels().ForEach(w => SetPower(w, 0.5f * power));
     }
 
     List<GameObject> getFrontWheels()
@@ -68,13 +71,18 @@ public class CarController : MonoBehaviour
         return new List<GameObject> { wheels[0], wheels[1] };
     }
 
-    void SetPower(GameObject wheel)
+    List<GameObject> getRearWheels()
+    {
+        return new List<GameObject> { wheels[2], wheels[3] };
+    }
+
+    void SetPower(GameObject wheel, float power)
     {
         WheelCollider wheelCollider = GetCollider(wheel);
         wheelCollider.motorTorque = -power;
-        Debug.Log(power);
+        //Debug.Log(power);
         if (power != 0) wheelCollider.brakeTorque = 0;
-        else Debug.Log("friction");
+        //else Debug.Log("friction");
     }
 
     void ApplyFriction(GameObject wheel)
@@ -85,6 +93,7 @@ public class CarController : MonoBehaviour
 
     void BrakeWheel(GameObject wheel)
     {
+        Debug.Log("brake: " + brake);
         WheelCollider wheelCollider = GetCollider(wheel);
         wheelCollider.brakeTorque = brake;
         wheelCollider.motorTorque = 0;
