@@ -5,8 +5,20 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance = null; 
+    public static GameManager instance = null;
 
+    public List<GameObject> PlayerCars;
+    public List<GameObject> PlayersDefaultCamera;
+
+    public GameObject ScoreCounter;
+    public GameObject TimeCounter;
+    public GameObject StartCounter;
+
+    public GameObject GameWindow;
+
+    private GameObject playerCar;
+
+    private static int playerCarNum;
     private static int checkpointsScored = -1;
     private static int checkpointsCount = 0;
     private static float raceStartTime;
@@ -17,11 +29,12 @@ public class GameManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
-            // UWAGA!!! To zadziała tylko w przypadku jednego levelu, tą inicjalizację trzeba wrzucić gdzieś indziej, póki co będzie tu.
-            GameManager.checkpointsCount = GameObject.Find("checkpoints").GetComponentsInChildren(typeof(BoxCollider)).Length;
-            GameObject.FindGameObjectWithTag("Player").GetComponent<CarController>().enabled = false;
+            checkpointsCount = GameObject.Find("checkpoints").GetComponentsInChildren<BoxCollider>().Length;
+            initPlayerCar();
+            playerCar.GetComponent<AbstractCarController>().enabled = false;
             
-            Debug.Log(GameManager.checkpointsCount);
+            Debug.Log("checkpoints: " + checkpointsCount);
+            UIManager.ShowWindow(GameWindow);
             initializeRace();
         }
         else if (instance != this)
@@ -31,6 +44,16 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    public void initPlayerCar()
+    {
+        playerCar = PlayerCars[playerCarNum];
+        PlayerCars.ForEach(p => p.SetActive(false));
+        playerCar.SetActive(true);
+        var playerCamera = PlayersDefaultCamera[playerCarNum];
+        PlayersDefaultCamera.ForEach(c => c.SetActive(false));
+        playerCamera.SetActive(true);
+    } 
+
     public static void checkCheckpoint()
     {
         if(checkpointsScored == 0) // if first checkpoint is to be counted
@@ -38,7 +61,7 @@ public class GameManager : MonoBehaviour
             raceStartTime = Time.time;
         }
         checkpointsScored++;
-        GameObject.Find("score_counter").GetComponent<Text>().text = string.Format("Checkpoints: {0}/{1}", GameManager.checkpointsScored, GameManager.checkpointsCount);
+        instance.ScoreCounter.GetComponent<Text>().text = string.Format("Checkpoints: {0}/{1}", GameManager.checkpointsScored, GameManager.checkpointsCount);
         if (checkpointsScored == checkpointsCount) raceFinished();
     }
 
@@ -55,12 +78,12 @@ public class GameManager : MonoBehaviour
 
     private void raceCountdown()
     {
-        GameObject.Find("start_counter").GetComponent<Text>().text = string.Format("{0}", secodsToStartRace);
+        StartCounter.GetComponent<Text>().text = string.Format("{0}", secodsToStartRace);
         if (secodsToStartRace == 0)
         {
-            GameObject.FindGameObjectWithTag("Player").GetComponent<CarController>().enabled = true;
+            playerCar.GetComponent<AbstractCarController>().enabled = true;
             instance.CancelInvoke("raceCountdown");
-            GameObject.Find("start_counter").GetComponent<Text>().enabled = false;
+            StartCounter.GetComponent<Text>().enabled = false;
         }
         secodsToStartRace--;
     }
@@ -74,7 +97,12 @@ public class GameManager : MonoBehaviour
             string seconds = (secondsSinceRaceStart % 60).ToString("00");
             string timer_text = string.Format("{0}:{1}", minutes, seconds);
 
-            GameObject.Find("time_counter").GetComponent<Text>().text = timer_text;
+            TimeCounter.GetComponent<Text>().text = timer_text;
         }
+    }
+
+    public static void SetCurrentPlayerCar(int carNumber)
+    {
+        playerCarNum = carNumber;
     }
 }
