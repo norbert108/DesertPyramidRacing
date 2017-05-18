@@ -7,7 +7,7 @@ public class SpeedPunkCarController : AbstractCarController
 {
     public List<GameObject> wheels;
     public GameObject drivingWheel;
-    float enginePower = 150.0f;
+    public float enginePower;
     float power = 0.0f;
     float brake = 0.0f;
     float steerAngle = 0.0f;
