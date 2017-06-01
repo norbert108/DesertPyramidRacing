@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
 
     private GameObject playerCar;
 
-    private static int playerCarNum;
+    private static int playerCarNum = 1;
     private static int checkpointsScored = -1;
     private static int checkpointsCount = 0;
     private static float raceStartTime;
