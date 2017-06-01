@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class SpeedPunkCarController : AbstractCarController
+public class SpeedPunkCarController : MonoBehaviour
 {
     public List<GameObject> wheels;
     public GameObject drivingWheel;

@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
 
     private GameObject playerCar;
 
-    private static int playerCarNum = 1;
+    private static int playerCarNum = 2;
     private static int checkpointsScored = -1;
     private static int checkpointsCount = 0;
     private static float raceStartTime;
@@ -28,10 +28,15 @@ public class GameManager : MonoBehaviour
     {
         if (instance == null)
         {
+           // CarAudio
             instance = this;
             checkpointsCount = GameObject.Find("checkpoints").GetComponentsInChildren<BoxCollider>().Length;
             initPlayerCar();
-            playerCar.GetComponent<MonoBehaviour>().enabled = false;
+            foreach (MonoBehaviour component in playerCar.GetComponents<MonoBehaviour>())
+            {
+                if (component is UnityStandardAssets.Vehicles.Car.CarAudio) continue;
+                component.enabled = false;
+            }
 
             UIManager.ShowWindow(GameWindow);
             initializeRace();
@@ -63,7 +68,7 @@ public class GameManager : MonoBehaviour
 
     private static void raceFinished()
     {
-        Debug.Log("ZWYCIENSTWO");
+        Debug.Log("Wygrana");
     }
 
     private static void initializeRace()
@@ -77,7 +82,10 @@ public class GameManager : MonoBehaviour
         StartCounter.GetComponent<Text>().text = string.Format("{0}", secodsToStartRace);
         if (secodsToStartRace == 0)
         {
-            playerCar.GetComponent<MonoBehaviour>().enabled = true;
+            foreach (MonoBehaviour component in playerCar.GetComponents<MonoBehaviour>())
+            {
+                component.enabled = true;
+            }
             instance.CancelInvoke("raceCountdown");
             StartCounter.GetComponent<Text>().enabled = false;
         }
