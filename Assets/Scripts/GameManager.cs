@@ -31,9 +31,8 @@ public class GameManager : MonoBehaviour
             instance = this;
             checkpointsCount = GameObject.Find("checkpoints").GetComponentsInChildren<BoxCollider>().Length;
             initPlayerCar();
-            playerCar.GetComponent<AbstractCarController>().enabled = false;
-            
-            Debug.Log("checkpoints: " + checkpointsCount);
+            playerCar.GetComponent<MonoBehaviour>().enabled = false;
+
             UIManager.ShowWindow(GameWindow);
             initializeRace();
         }
@@ -49,9 +48,6 @@ public class GameManager : MonoBehaviour
         playerCar = PlayerCars[playerCarNum];
         PlayerCars.ForEach(p => p.SetActive(false));
         playerCar.SetActive(true);
-        var playerCamera = PlayersDefaultCamera[playerCarNum];
-        PlayersDefaultCamera.ForEach(c => c.SetActive(false));
-        playerCamera.SetActive(true);
     } 
 
     public static void checkCheckpoint()
@@ -81,7 +77,7 @@ public class GameManager : MonoBehaviour
         StartCounter.GetComponent<Text>().text = string.Format("{0}", secodsToStartRace);
         if (secodsToStartRace == 0)
         {
-            playerCar.GetComponent<AbstractCarController>().enabled = true;
+            playerCar.GetComponent<MonoBehaviour>().enabled = true;
             instance.CancelInvoke("raceCountdown");
             StartCounter.GetComponent<Text>().enabled = false;
         }

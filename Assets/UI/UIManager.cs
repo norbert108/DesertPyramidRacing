@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -48,9 +49,15 @@ public class UIManager : MonoBehaviour {
 
     private static void HideAllWindows()
     {
-        var allWindows = new List<GameObject> { instance.MainWindow, instance.CarWindow, instance.LevelWindow,
-            instance.OptionsWindow, instance.HelpWindow, instance.AboutWindow };
-        allWindows.ForEach(HideWindow);
+        try
+        {
+            var allWindows = new List<GameObject> { instance.MainWindow, instance.CarWindow, instance.LevelWindow, instance.OptionsWindow, instance.HelpWindow, instance.AboutWindow };
+            allWindows.ForEach(HideWindow);
+        }
+        catch (NullReferenceException e)
+        {
+            Debug.Log("Menu windows not initialized");
+        }
     }
 
     public static void LoadLevel(int levelNumber)
