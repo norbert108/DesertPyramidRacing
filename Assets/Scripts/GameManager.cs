@@ -18,11 +18,14 @@ public class GameManager : MonoBehaviour
 
     private GameObject playerCar;
 
-    private static int playerCarNum = 2;
+    public static int playerCarNum = 2;
     private static int checkpointsScored = -1;
     private static int checkpointsCount = 0;
     private static float raceStartTime;
     private static int secodsToStartRace = 3;
+    public static int opponentsNumber = 0;
+    public static int lapsFinished = 0;
+    public static int totalLapsNumber = 1;
 
     void Awake()
     {
@@ -103,10 +106,5 @@ public class GameManager : MonoBehaviour
 
             TimeCounter.GetComponent<Text>().text = timer_text;
         }
-    }
-
-    public static void SetCurrentPlayerCar(int carNumber)
-    {
-        playerCarNum = carNumber;
     }
 }

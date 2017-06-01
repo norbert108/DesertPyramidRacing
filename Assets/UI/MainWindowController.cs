@@ -8,8 +8,7 @@ public class MainWindowController : MonoBehaviour {
 
     public void OnPlayClicked()
     {
-        Debug.Log("Play clicked");
-        UIManager.ShowWindow(UiManager.CarWindow);
+        UIManager.ShowWindow(UiManager.SelectionWindow);
     }
 
     public void OnOptionsClicked()

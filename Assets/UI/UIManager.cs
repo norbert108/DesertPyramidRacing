@@ -7,8 +7,7 @@ using UnityEngine.SceneManagement;
 public class UIManager : MonoBehaviour {
 
     public GameObject MainWindow;
-    public GameObject CarWindow;
-    public GameObject LevelWindow;
+    public GameObject SelectionWindow;
     public GameObject OptionsWindow;
     public GameObject HelpWindow;
     public GameObject AboutWindow;
@@ -51,18 +50,20 @@ public class UIManager : MonoBehaviour {
     {
         try
         {
-            var allWindows = new List<GameObject> { instance.MainWindow, instance.CarWindow, instance.LevelWindow, instance.OptionsWindow, instance.HelpWindow, instance.AboutWindow };
+            var allWindows = new List<GameObject> { instance.MainWindow, instance.SelectionWindow, instance.OptionsWindow, instance.HelpWindow, instance.AboutWindow };
             allWindows.ForEach(HideWindow);
         }
         catch (NullReferenceException e)
         {
             Debug.Log("Menu windows not initialized");
+            Debug.Log(e.StackTrace);
         }
     }
 
     public static void LoadLevel(int levelNumber)
     {
-        UIManager.HideWindow(instance.LevelWindow);
+       // HideWindow(instance.SelectionWindow);
+        HideAllWindows();
         SceneManager.LoadScene("Level" + levelNumber);
     }
 
