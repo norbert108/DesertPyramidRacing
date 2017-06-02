@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     private static int checkpointsScored = -1;
     private static int checkpointsCount = 0;
     private static float raceStartTime;
-    private static int secodsToStartRace = 3;
+    public static int secodsToStartRace = 0;
     public static int opponentsNumber = 0;
     public static int lapsFinished = 0;
     public static int totalLapsNumber = 1;

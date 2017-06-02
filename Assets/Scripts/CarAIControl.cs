@@ -36,7 +36,7 @@ namespace UnityStandardAssets.Vehicles.Car
         [SerializeField] private bool m_Driving;                                                  // whether the AI is currently actively driving or stopped.
         [SerializeField] private Transform m_Target;                                              // 'target' the target object to aim for.
         [SerializeField] private bool m_StopWhenTargetReached;                                    // should we stop driving when we reach the target?
-        [SerializeField] private float m_ReachTargetThreshold = 2;                                // proximity to target to consider we 'reached' it, and stop driving.
+        [SerializeField] private float m_ReachTargetThreshold = 5;                                // proximity to target to consider we 'reached' it, and stop driving.
 
         private float m_RandomPerlin;             // A random value for the car to base its wander on (so that AI cars don't all wander in the same pattern)
         private CarController m_CarController;    // Reference to actual car controller we are controlling
@@ -45,6 +45,8 @@ namespace UnityStandardAssets.Vehicles.Car
         private float m_AvoidPathOffset;          // direction (-1 or 1) in which to offset path to avoid other car, whilst avoiding
         private Rigidbody m_Rigidbody;
 
+        private int currentCheckpointFollow = 0;
+        public int finalCheckpointNumber = 1;
 
         private void Awake()
         {
@@ -171,9 +173,19 @@ namespace UnityStandardAssets.Vehicles.Car
                 m_CarController.Move(steer, accel, accel, 0f);
 
                 // if appropriate, stop driving when we're close enough to the target.
-                if (m_StopWhenTargetReached && localTarget.magnitude < m_ReachTargetThreshold)
+                Debug.Log(localTarget.magnitude);
+                if (localTarget.magnitude < m_ReachTargetThreshold)
                 {
-                    m_Driving = false;
+                    currentCheckpointFollow = currentCheckpointFollow + 1;
+                    if (currentCheckpointFollow > finalCheckpointNumber)
+                    {
+                        m_Driving = false;
+                    }
+                    else
+                    {
+                        GameObject nextCheckpoint = GameObject.Find("checkpoint_" + currentCheckpointFollow);
+                        m_Target = nextCheckpoint.transform;
+                    }
                 }
             }
         }
