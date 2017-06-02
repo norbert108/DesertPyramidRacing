@@ -62,7 +62,6 @@ public class UIManager : MonoBehaviour {
 
     public static void LoadLevel(int levelNumber)
     {
-       // HideWindow(instance.SelectionWindow);
         HideAllWindows();
         SceneManager.LoadScene("Level" + levelNumber);
     }
